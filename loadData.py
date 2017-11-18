@@ -1,34 +1,35 @@
 import pandas as pd
 import numpy as np 
+import math
 
 def readData():
     '''
     Creates a pandas data frame from the 
     csv files
     '''
-    bikesData = pd.read_csv('Datahack 2017 Data/bikes.csv', names=['Date', 'Count'])
-    holidaysData = pd.read_csv('Datahack 2017 Data/holidays.csv')
-    weatherData = pd.read_csv('Datahack 2017 Data/weather.csv')
-    return bikesData,holidaysData,weatherData
+    data = pd.read_csv('DataHack 2017 Data/bike-weather-concat.csv')
 
+    return data
 
-def countMatches(bikesData,weatherData):
-    weatherDates = list(weatherData.Date)
-    bikesDates = list(bikesData.Date)
-    count = 0
-    for date in weatherDates:
-        if date in bikesDates:
-            count += 1
-    print(weatherData)
-    print(count)
+def fillNullValues(data):
+    for i,row in data.iterrows():
+        for col in data:
+            if (col != 'Date' and col != 'Bikes'):
+                if math.isnan(row[col]):
+                    surroundVals = []
+                    for ind in range(i-3,i+3):
+                        if ind != i:
+                            try:
+                                surroundVals.append(data.iloc[ind][col])
+                            except:
+                                pass
 
+                    s = sum(surroundVals)
+                    newVal = s/len(surroundVals)
+                    data.iloc[i,data.columns.get_loc(col)] = newVal
+    
+    return data
+    
 
-bd,hd,wd = readData()
-dateW = list(wd.Date)
-dateB = list(bd.Date)
-for d in dateB:
-    if d not in dateW:
-        print(d)
-
-
-
+data = fillNullValues(readData())
+data.to_csv('DataHack 2017 Data/Null-filled-concat.csv')
